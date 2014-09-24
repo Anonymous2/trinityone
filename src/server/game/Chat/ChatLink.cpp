@@ -20,11 +20,8 @@
 #include "ObjectMgr.h"
 #include "SpellInfo.h"
 #include "DBCStores.h"
-#include "AchievementMgr.h"
 
 // Supported shift-links (client generated and server side)
-// |color|Hachievement:achievement_id:player_guid:0:0:0:0:0:0:0:0|h[name]|h|r
-//                                                                        - client, item icon shift click, not used in server currently
 // |color|Harea:area_id|h[name]|h|r
 // |color|Hcreature:creature_guid|h[name]|h|r
 // |color|Hcreature_entry:creature_id|h[name]|h|r
@@ -328,115 +325,6 @@ bool SpellChatLink::ValidateName(char* buffer, const char* context)
     return false;
 }
 
-// |color|Hachievement:achievement_id:player_guid:0:0:0:0:0:0:0:0|h[name]|h|r
-// |cffffff00|Hachievement:546:0000000000000001:0:0:0:-1:0:0:0:0|h[Safe Deposit]|h|r
-bool AchievementChatLink::Initialize(std::istringstream& iss)
-{
-    if (_color != CHAT_LINK_COLOR_ACHIEVEMENT)
-        return false;
-    // Read achievemnt Id
-    uint32 achievementId = 0;
-    if (!ReadUInt32(iss, achievementId))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading achievement entry", iss.str().c_str());
-        return false;
-    }
-    // Validate achievement
-    _achievement = sAchievementMgr->GetAchievement(achievementId);
-    if (!_achievement)
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid achivement id %u in |achievement command", iss.str().c_str(), achievementId);
-        return false;
-    }
-    // Check delimiter
-    if (!CheckDelimiter(iss, DELIMITER, "achievement"))
-        return false;
-    // Read HEX
-    if (!ReadHex(iss, _guid, 0))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): invalid hexadecimal number while reading char's guid", iss.str().c_str());
-        return false;
-    }
-    // Skip progress
-    const uint8 propsCount = 8;
-    for (uint8 index = 0; index < propsCount; ++index)
-    {
-        if (!CheckDelimiter(iss, DELIMITER, "achievement"))
-            return false;
-
-        if (!ReadUInt32(iss, _data[index]))
-        {
-            TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading achievement property (%u)", iss.str().c_str(), index);
-            return false;
-        }
-    }
-    return true;
-}
-
-bool AchievementChatLink::ValidateName(char* buffer, const char* context)
-{
-    ChatLink::ValidateName(buffer, context);
-
-    for (uint8 i = 0; i < TOTAL_LOCALES; ++i)
-        if (*_achievement->name[i] && strcmp(_achievement->name[i], buffer) == 0)
-            return true;
-
-    TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): linked achievement (id: %u) name wasn't found in any localization", context, _achievement->ID);
-    return false;
-}
-
-// |color|Htrade:spell_id:cur_value:max_value:player_guid:base64_data|h[name]|h|r
-// |cffffd000|Htrade:4037:1:150:1:6AAAAAAAAAAAAAAAAAAAAAAOAADAAAAAAAAAAAAAAAAIAAAAAAAAA|h[Engineering]|h|r
-bool TradeChatLink::Initialize(std::istringstream& iss)
-{
-    if (_color != CHAT_LINK_COLOR_TRADE)
-        return false;
-    // Spell Id
-    uint32 spellId = 0;
-    if (!ReadUInt32(iss, spellId))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading achievement entry", iss.str().c_str());
-        return false;
-    }
-    // Validate spell
-    _spell = sSpellMgr->GetSpellInfo(spellId);
-    if (!_spell)
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |trade command", iss.str().c_str(), spellId);
-        return false;
-    }
-    // Check delimiter
-    if (!CheckDelimiter(iss, DELIMITER, "trade"))
-        return false;
-    // Minimum talent level
-    if (!ReadInt32(iss, _minSkillLevel))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading minimum talent level", iss.str().c_str());
-        return false;
-    }
-    // Check delimiter
-    if (!CheckDelimiter(iss, DELIMITER, "trade"))
-        return false;
-    // Maximum talent level
-    if (!ReadInt32(iss, _maxSkillLevel))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading maximum talent level", iss.str().c_str());
-        return false;
-    }
-    // Check delimiter
-    if (!CheckDelimiter(iss, DELIMITER, "trade"))
-        return false;
-    // Something hexadecimal
-    if (!ReadHex(iss, _guid, 0))
-    {
-        TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading achievement's owner guid", iss.str().c_str());
-        return false;
-    }
-    // Skip base64 encoded stuff
-    _base64 = ReadSkip(iss, PIPE_CHAR);
-    return true;
-}
-
 // |color|Htalent:talent_id:rank|h[name]|h|r
 // |cff4e96f7|Htalent:2232:-1|h[Taste for Blood]|h|r
 bool TalentChatLink::Initialize(std::istringstream& iss)
@@ -638,8 +526,6 @@ bool LinkExtractor::IsValidMessage()
                     link = new SpellChatLink();
                 else if (strcmp(buffer, "enchant") == 0)
                     link = new EnchantmentChatLink();
-                else if (strcmp(buffer, "achievement") == 0)
-                    link = new AchievementChatLink();
                 else if (strcmp(buffer, "glyph") == 0)
                     link = new GlyphChatLink();
                 else

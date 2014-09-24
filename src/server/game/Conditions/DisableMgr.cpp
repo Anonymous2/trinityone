@@ -17,7 +17,6 @@
  */
 
 #include "DisableMgr.h"
-#include "AchievementMgr.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvP.h"
 #include "SpellMgr.h"
@@ -172,15 +171,6 @@ void LoadDisables()
                 }
                 if (flags)
                     TC_LOG_ERROR("sql.sql", "Disable flags specified for outdoor PvP %u, useless data.", entry);
-                break;
-            case DISABLE_TYPE_ACHIEVEMENT_CRITERIA:
-                if (!sAchievementMgr->GetAchievementCriteria(entry))
-                {
-                    TC_LOG_ERROR("sql.sql", "Achievement Criteria entry %u from `disables` doesn't exist in dbc, skipped.", entry);
-                    continue;
-                }
-                if (flags)
-                    TC_LOG_ERROR("sql.sql", "Disable flags specified for Achievement Criteria %u, useless data.", entry);
                 break;
             case DISABLE_TYPE_VMAP:
             {
@@ -377,7 +367,6 @@ bool IsDisabledFor(DisableType type, uint32 entry, Unit const* unit, uint8 flags
             return true;
         case DISABLE_TYPE_BATTLEGROUND:
         case DISABLE_TYPE_OUTDOORPVP:
-        case DISABLE_TYPE_ACHIEVEMENT_CRITERIA:
         case DISABLE_TYPE_MMAP:
             return true;
         case DISABLE_TYPE_VMAP:

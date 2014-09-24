@@ -17,7 +17,6 @@
  */
 
 #include "ConditionMgr.h"
-#include "AchievementMgr.h"
 #include "GameEventMgr.h"
 #include "InstanceScript.h"
 #include "ObjectMgr.h"
@@ -80,12 +79,6 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo)
                 if (FactionEntry const* faction = sFactionStore.LookupEntry(ConditionValue1))
                     condMeets = (ConditionValue2 & (1 << player->GetReputationMgr().GetRank(faction))) != 0;
             }
-            break;
-        }
-        case CONDITION_ACHIEVEMENT:
-        {
-            if (Player* player = object->ToPlayer())
-                condMeets = player->HasAchieved(ConditionValue1);
             break;
         }
         case CONDITION_TEAM:
@@ -383,9 +376,6 @@ uint32 Condition::GetSearcherTypeMaskForCondition()
             mask |= GRID_MAP_TYPE_MASK_ALL;
             break;
         case CONDITION_REPUTATION_RANK:
-            mask |= GRID_MAP_TYPE_MASK_PLAYER;
-            break;
-        case CONDITION_ACHIEVEMENT:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         case CONDITION_TEAM:
@@ -1693,21 +1683,6 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond)
                 TC_LOG_ERROR("sql.sql", "ActiveEvent condition has useless data in value2 (%u)!", cond->ConditionValue2);
             if (cond->ConditionValue3)
                 TC_LOG_ERROR("sql.sql", "ActiveEvent condition has useless data in value3 (%u)!", cond->ConditionValue3);
-            break;
-        }
-        case CONDITION_ACHIEVEMENT:
-        {
-            AchievementEntry const* achievement = sAchievementMgr->GetAchievement(cond->ConditionValue1);
-            if (!achievement)
-            {
-                TC_LOG_ERROR("sql.sql", "Achivement condition has non existing achivement id (%u), skipped", cond->ConditionValue1);
-                return false;
-            }
-
-            if (cond->ConditionValue2)
-                TC_LOG_ERROR("sql.sql", "Achivement condition has useless data in value2 (%u)!", cond->ConditionValue2);
-            if (cond->ConditionValue3)
-                TC_LOG_ERROR("sql.sql", "Achivement condition has useless data in value3 (%u)!", cond->ConditionValue3);
             break;
         }
         case CONDITION_CLASS:

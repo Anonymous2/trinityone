@@ -549,23 +549,6 @@ void ArenaTeam::BroadcastEvent(ArenaTeamEvents event, ObjectGuid guid, uint8 str
     TC_LOG_DEBUG("network", "WORLD: Sent SMSG_ARENA_TEAM_EVENT");
 }
 
-void ArenaTeam::MassInviteToEvent(WorldSession* session)
-{
-    WorldPacket data(SMSG_CALENDAR_ARENA_TEAM, (Members.size() - 1) * (4 + 8 + 1));
-    data << uint32(Members.size() - 1);
-
-    for (MemberList::const_iterator itr = Members.begin(); itr != Members.end(); ++itr)
-    {
-        if (itr->Guid != session->GetPlayer()->GetGUID())
-        {
-            data << itr->Guid.WriteAsPacked();
-            data << uint8(0); // unk
-        }
-    }
-
-    session->SendPacket(&data);
-}
-
 uint8 ArenaTeam::GetSlotByType(uint32 type)
 {
     switch (type)

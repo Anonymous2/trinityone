@@ -25,14 +25,13 @@ class Unit;
 
 enum DisableType
 {
-    DISABLE_TYPE_SPELL                  = 0,
-    DISABLE_TYPE_QUEST                  = 1,
-    DISABLE_TYPE_MAP                    = 2,
-    DISABLE_TYPE_BATTLEGROUND           = 3,
-    DISABLE_TYPE_ACHIEVEMENT_CRITERIA   = 4,
-    DISABLE_TYPE_OUTDOORPVP             = 5,
-    DISABLE_TYPE_VMAP                   = 6,
-    DISABLE_TYPE_MMAP                   = 7
+    DISABLE_TYPE_SPELL              = 0,
+    DISABLE_TYPE_QUEST              = 1,
+    DISABLE_TYPE_MAP                = 2,
+    DISABLE_TYPE_BATTLEGROUND       = 3,
+    DISABLE_TYPE_OUTDOORPVP         = 4,
+    DISABLE_TYPE_VMAP               = 5,
+    DISABLE_TYPE_MMAP               = 6
 };
 
 enum SpellDisableTypes

@@ -17,10 +17,8 @@
 
 /// @todo Implement proper support for vehicle+player teleportation
 /// @todo Use spell victory/defeat in wg instead of RewardMarkOfHonor() && RewardHonor
-/// @todo Add proper implement of achievement
 
 #include "BattlefieldWG.h"
-#include "AchievementMgr.h"
 #include "CreatureTextMgr.h"
 #include "Battleground.h"
 #include "MapManager.h"
@@ -360,11 +358,6 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
         {
             player->CastSpell(player, SPELL_ESSENCE_OF_WINTERGRASP, true);
             player->CastSpell(player, SPELL_VICTORY_REWARD, true);
-            // Send Wintergrasp victory achievement
-            DoCompleteOrIncrementAchievement(ACHIEVEMENTS_WIN_WG, player);
-            // Award achievement for succeeding in Wintergrasp in 10 minutes or less
-            if (!endByTimer && GetTimer() <= 10000)
-                DoCompleteOrIncrementAchievement(ACHIEVEMENTS_WIN_WG_TIMER_10, player);
         }
     }
 
@@ -412,29 +405,6 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
 // *******************************************************
 // ******************* Reward System *********************
 // *******************************************************
-void BattlefieldWG::DoCompleteOrIncrementAchievement(uint32 achievement, Player* player, uint8 /*incrementNumber*/)
-{
-    AchievementEntry const* achievementEntry = sAchievementMgr->GetAchievement(achievement);
-
-    if (!achievementEntry)
-        return;
-
-    switch (achievement)
-    {
-        case ACHIEVEMENTS_WIN_WG_100:
-        {
-            // player->UpdateAchievementCriteria();
-        }
-        default:
-        {
-            if (player)
-                player->CompletedAchievement(achievementEntry);
-            break;
-        }
-    }
-
-}
-
 void BattlefieldWG::OnStartGrouping()
 {
     SendWarning(BATTLEFIELD_WG_TEXT_START_GROUPING);
@@ -884,7 +854,6 @@ void BattlefieldWG::UpdatedDestroyedTowerCount(TeamId team)
             if (Player* player = sObjectAccessor->FindPlayer(*itr))
             {
                 player->CastSpell(player, SPELL_TOWER_CONTROL, true);
-                DoCompleteOrIncrementAchievement(ACHIEVEMENTS_WG_TOWER_DESTROY, player);
             }
 
         // If all three south towers are destroyed (ie. all attack towers), remove ten minutes from battle time
